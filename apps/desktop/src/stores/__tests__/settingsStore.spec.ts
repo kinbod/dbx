@@ -50,6 +50,14 @@ describe("normalizeEditorSettings", () => {
     expect(normalizeEditorSettings({ openDataTabsNextToActive: null } as any).openDataTabsNextToActive).toBe(false);
   });
 
+  it("keeps SQL-file save formatting disabled unless explicitly enabled", () => {
+    expect(normalizeEditorSettings({}).formatSqlOnSqlFileSave).toBe(false);
+    expect(normalizeEditorSettings({ formatSqlOnSqlFileSave: true }).formatSqlOnSqlFileSave).toBe(true);
+    expect(normalizeEditorSettings({ formatSqlOnSqlFileSave: false }).formatSqlOnSqlFileSave).toBe(false);
+    expect(normalizeEditorSettings({ formatSqlOnSqlFileSave: "true" } as any).formatSqlOnSqlFileSave).toBe(false);
+    expect(normalizeEditorSettings({ formatSqlOnSqlFileSave: null } as any).formatSqlOnSqlFileSave).toBe(false);
+  });
+
   it("defaults and bounds the regular expression match limit", () => {
     expect(normalizeEditorSettings({}).regexMaxMatchCount).toBe(1000);
     expect(normalizeEditorSettings({ regexMaxMatchCount: 2500 }).regexMaxMatchCount).toBe(2500);
@@ -194,10 +202,11 @@ describe("normalizeEditorSettings", () => {
     expect(normalizeEditorSettings({ restoreOpenTabsOnLaunch: true } as any).openTabsRestoreMode).toBe("all");
   });
 
-  it("prompts for unsaved SQL on quit by default and preserves explicit modes", () => {
-    expect(normalizeEditorSettings({}).appCloseUnsavedTabsMode).toBe("prompt");
+  it("keeps unsaved SQL drafts on quit by default and preserves explicit modes", () => {
+    expect(normalizeEditorSettings({}).appCloseUnsavedTabsMode).toBe("keep-drafts");
+    expect(normalizeEditorSettings({ appCloseUnsavedTabsMode: "prompt" }).appCloseUnsavedTabsMode).toBe("prompt");
     expect(normalizeEditorSettings({ appCloseUnsavedTabsMode: "keep-drafts" }).appCloseUnsavedTabsMode).toBe("keep-drafts");
-    expect(normalizeEditorSettings({ appCloseUnsavedTabsMode: "invalid" as any }).appCloseUnsavedTabsMode).toBe("prompt");
+    expect(normalizeEditorSettings({ appCloseUnsavedTabsMode: "invalid" as any }).appCloseUnsavedTabsMode).toBe("keep-drafts");
   });
 
   it("preserves CNB, migrates AtomGit to CNB, and rejects invalid values", () => {
