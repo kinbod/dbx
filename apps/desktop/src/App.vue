@@ -85,6 +85,7 @@ import {
   isSendSelectionToAiShortcut,
   isSwitchToNextTabShortcut,
   isSwitchToPreviousTabShortcut,
+  isToggleResultsPaneShortcut,
   isToggleSidebarShortcut,
   isZoomInShortcut,
   isZoomOutShortcut,
@@ -535,6 +536,13 @@ function openSettings(initialTab = "appearance", initialSection?: string) {
   activateSettingsPage();
 }
 
+type MainContentSurface = "query" | "settings" | "driverStore";
+
+function activateMainContentSurface(surface: MainContentSurface) {
+  settingsStore.settingsPageActive = surface === "settings";
+  driverStoreActive.value = surface === "driverStore";
+}
+
 watch(
   () => settingsStore.settingsNavigationRequest,
   (request) => {
@@ -546,23 +554,20 @@ watch(
 
 function activateSettingsPage() {
   settingsPageTabOpen.value = true;
-  settingsStore.settingsPageActive = true;
-  driverStoreActive.value = false;
+  activateMainContentSurface("settings");
 }
 
 function activateQuerySurface() {
-  driverStoreActive.value = false;
-  settingsStore.settingsPageActive = false;
+  activateMainContentSurface("query");
 }
 
 function closeSettingsPage() {
   settingsPageTabOpen.value = false;
-  settingsStore.settingsPageActive = false;
   if (settingsReturnSurface.value === "driverStore" && driverStoreTabOpen.value) {
-    driverStoreActive.value = true;
+    activateMainContentSurface("driverStore");
     return;
   }
-  driverStoreActive.value = false;
+  activateMainContentSurface("query");
 }
 
 const driverStoreFocus = ref<DriverStoreFocus | null>(null);
@@ -578,13 +583,12 @@ function openDriverStorePage(target?: "agent" | "jdbc" | "storage" | "runtime" |
     driverStoreFocus.value = target ?? null;
   }
   driverStoreTabOpen.value = true;
-  driverStoreActive.value = true;
-  settingsStore.settingsPageActive = false;
+  activateMainContentSurface("driverStore");
 }
 
 function closeDriverStorePage() {
   driverStoreTabOpen.value = false;
-  driverStoreActive.value = false;
+  activateMainContentSurface("query");
   driverStoreActiveTab.value = "agent";
   driverStoreFocus.value = null;
 }
@@ -2502,6 +2506,11 @@ async function handleKeydown(e: KeyboardEvent) {
     e.preventDefault();
     e.stopPropagation();
     contentAreaRef.value?.refreshData();
+    return;
+  }
+  if (isToggleResultsPaneShortcut(e, shortcuts) && contentAreaRef.value?.toggleResultsPane()) {
+    e.preventDefault();
+    e.stopPropagation();
     return;
   }
   if (isNewQueryShortcut(e, shortcuts)) {

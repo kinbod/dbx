@@ -10,10 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/ui/searchable-select/SearchableSelect.vue";
-import ConnectionGroupBadge from "@/components/connection/ConnectionGroupBadge.vue";
+import ConnectionTreeSelect from "@/components/connection/ConnectionTreeSelect.vue";
 import { useConnectionStore } from "@/stores/connectionStore";
-import DatabaseIcon from "@/components/icons/DatabaseIcon.vue";
-import { connectionIconType } from "@/lib/connection/connectionPresentation";
 import * as api from "@/lib/backend/api";
 import type { TransferContent, TransferMode, TransferObjectKind, TransferTableNameCase } from "@/lib/backend/api";
 import { crossFamilyTransferableKinds, isSameTransferFamily, transferObjectKindsForDatabase } from "@/lib/database/transferObjectKinds";
@@ -47,6 +45,15 @@ const props = defineProps<{
   prefillTargetDatabase?: string;
   prefillTargetSchema?: string;
 }>();
+
+const transferDialogStyle = {
+  width: "min(1120px, calc(100vw - 2rem))",
+  height: "min(80vh, calc(var(--dbx-viewport-height) - 2rem))",
+  minWidth: "min(780px, calc(100vw - 2rem))",
+  minHeight: "min(480px, calc(var(--dbx-viewport-height) - 2rem))",
+  maxWidth: "calc(100vw - 2rem)",
+  maxHeight: "calc(var(--dbx-viewport-height) - 2rem)",
+} as const;
 
 const store = useConnectionStore();
 
@@ -921,7 +928,7 @@ async function saveConfigTask() {
 
 <template>
   <Dialog v-model:open="open">
-    <DialogContent class="dbx-transfer-dialog sm:max-w-[1120px] max-h-[80vh] flex flex-col overflow-hidden" @interact-outside.prevent>
+    <DialogContent class="dbx-transfer-dialog sm:max-w-[1120px] max-h-[80vh] flex flex-col overflow-hidden resize" :style="transferDialogStyle" @interact-outside.prevent>
       <DialogHeader class="shrink-0">
         <DialogTitle class="flex items-center gap-2">
           <ArrowRightLeft class="w-4 h-4" />
@@ -946,25 +953,16 @@ async function saveConfigTask() {
 
                 <div class="space-y-1.5">
                   <Label class="text-xs">{{ t("transfer.sourceConnection") }}</Label>
-                  <SearchableSelect
+                  <ConnectionTreeSelect
                     v-model="sourceConnectionId"
-                    :options="sqlConnections.map((c) => c.id)"
+                    :connections="sqlConnections"
+                    :layout="store.sidebarLayout"
                     :placeholder="t('transfer.selectConnection')"
                     :search-placeholder="t('transfer.searchConnection')"
                     :empty-text="t('common.noResults')"
-                    :display-name="getConnectionName"
-                    trigger-variant="outline"
-                    trigger-class="h-8 w-full justify-between text-xs"
-                    content-class="w-[var(--reka-popover-trigger-width)]"
-                  >
-                    <template #option-label="{ option, label }">
-                      <div class="flex min-w-0 items-center gap-1.5">
-                        <DatabaseIcon :db-type="connectionIconType(sqlConnections.find((c) => c.id === option))" class="h-3.5 w-3.5 shrink-0" />
-                        <ConnectionGroupBadge :connection-id="option" />
-                        <span class="min-w-0 flex-1 truncate">{{ label }}</span>
-                      </div>
-                    </template>
-                  </SearchableSelect>
+                    trigger-class="h-8 w-full max-w-none justify-between gap-1.5 border border-input rounded-md bg-transparent px-2.5 text-xs shadow-none hover:bg-muted/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50"
+                    list-class="w-[var(--reka-popover-trigger-width)]"
+                  />
                 </div>
 
                 <!-- Source Catalog (Doris/StarRocks multi-catalog) -->
@@ -1025,25 +1023,16 @@ async function saveConfigTask() {
 
                 <div class="space-y-1.5">
                   <Label class="text-xs">{{ t("transfer.targetConnection") }}</Label>
-                  <SearchableSelect
+                  <ConnectionTreeSelect
                     v-model="targetConnectionId"
-                    :options="sqlConnections.map((c) => c.id)"
+                    :connections="sqlConnections"
+                    :layout="store.sidebarLayout"
                     :placeholder="t('transfer.selectConnection')"
                     :search-placeholder="t('transfer.searchConnection')"
                     :empty-text="t('common.noResults')"
-                    :display-name="getConnectionName"
-                    trigger-variant="outline"
-                    trigger-class="h-8 w-full justify-between text-xs"
-                    content-class="w-[var(--reka-popover-trigger-width)]"
-                  >
-                    <template #option-label="{ option, label }">
-                      <div class="flex min-w-0 items-center gap-1.5">
-                        <DatabaseIcon :db-type="connectionIconType(sqlConnections.find((c) => c.id === option))" class="h-3.5 w-3.5 shrink-0" />
-                        <ConnectionGroupBadge :connection-id="option" />
-                        <span class="min-w-0 flex-1 truncate">{{ label }}</span>
-                      </div>
-                    </template>
-                  </SearchableSelect>
+                    trigger-class="h-8 w-full max-w-none justify-between gap-1.5 border border-input rounded-md bg-transparent px-2.5 text-xs shadow-none hover:bg-muted/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50"
+                    list-class="w-[var(--reka-popover-trigger-width)]"
+                  />
                 </div>
 
                 <!-- Target Catalog (Doris/StarRocks multi-catalog) -->
@@ -1254,8 +1243,8 @@ async function saveConfigTask() {
 <style>
 @media (min-width: 640px) {
   html.dbx-legacy-webview [data-slot="dialog-content"].dbx-transfer-dialog[class~="max-w-sm"] {
-    width: calc(100vw - 2rem) !important;
-    max-width: 1120px !important;
+    /* Override the legacy default cap without pinning width, so native resize remains effective. */
+    max-width: calc(100vw - 2rem) !important;
   }
 }
 </style>
