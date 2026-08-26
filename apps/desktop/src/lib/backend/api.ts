@@ -345,6 +345,9 @@ export const snippetSyncDownload = forward("snippetSyncDownload");
 export const saveAiConversation = forward("saveAiConversation");
 export const loadAiConversations = forward("loadAiConversations");
 export const deleteAiConversation = forward("deleteAiConversation");
+export const saveAiRun = forward("saveAiRun");
+export const saveAiRunState = forward("saveAiRunState");
+export const loadAiRuns = forward("loadAiRuns");
 
 // Prompt Templates
 export const loadPromptTemplates = forward("loadPromptTemplates");
@@ -465,6 +468,7 @@ export const redisDeleteKey = forward("redisDeleteKey");
 export const redisRenameKey = forward("redisRenameKey");
 export const redisHashSet = forward("redisHashSet");
 export const redisHashDel = forward("redisHashDel");
+export const redisHashFieldUpdate = forward("redisHashFieldUpdate");
 export const redisHashFieldSetTtl = forward("redisHashFieldSetTtl");
 export const redisHashFieldSetExpireAt = forward("redisHashFieldSetExpireAt");
 export const redisListPush = forward("redisListPush");
@@ -821,6 +825,8 @@ export type {
   AiModelInfo,
   AiChatMessage,
   AiConversation,
+  AiRun,
+  AiRunStatus,
   PromptTemplate,
   AgentDriverInfo,
   AgentOfflineArtifactKind,
